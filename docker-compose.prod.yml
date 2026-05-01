@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    image: kapil4506/healthcare-mern:backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: always
+
+  frontend:
+    image: kapil4506/healthcare-mern:frontend
+    ports:
+      - "4000:80"
+    depends_on:
+      - backend
+    restart: always
+
+    
