@@ -14,7 +14,6 @@ app.use(cors({
 app.use(express.json());
 
 const MONGO_URL = process.env.MONGO_URL;
-console.log("Mogodb url is : ", process.env.MONGO_URL);
 
 mongoose.connect(MONGO_URL)
     .then(() => console.log("Database connected successflly."))
