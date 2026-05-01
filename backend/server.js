@@ -8,7 +8,8 @@ require('dns').setDefaultResultOrder('ipv4first');
 //Frontend will try to connect to the backend from these URLs, only specified URLs will be allowed to connect.
 //If we deploy the frontend to AWS EC2, we will need to add its URL to this list.
 app.use(cors({
-    origin: ['http://localhost:5173','http://localhost:3000', 'https://your-aws-frontend-url.com']
+    origin: '*' // Allow all origins to prevent blocking during AWS deployment
+    //origin: ['http://localhost:5173','http://localhost:3000', 'https://your-aws-frontend-url.com']
 }));
 
 app.use(express.json());
