@@ -24,8 +24,14 @@ app.use('/api/doctors', require('./routes/doctor'));
 app.use('/api/appointments', require('./routes/appointment'));
 app.use('/api/reports', require('./routes/reports'));
 
+
 app.get('/', (req, res) => {
     res.send("Welcome to Hospital management system.");
+});
+
+// for bot
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', time: new Date() });
 });
 
 const port = process.env.PORT || 5000;
