@@ -44,8 +44,7 @@ const Register = () => {
       setLoading(true);
       const { confirmPassword, ...dataToSend } = formData;
       await axios.post(import.meta.env.VITE_API_URL + '/api/patients', dataToSend);
-      alert('Registration successful! Please login.');
-      navigate('/');
+      navigate('/', { state: { message: 'Registration successful! Please login.' } });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

@@ -26,7 +26,7 @@ const AppointmentSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: {
-            values: ['Scheduled', 'Completed', 'Cancelled'],
+            values: ['Scheduled', 'Completed', 'Cancelled', 'Expired'],
             message: '{VALUE} is not a valid appointment status.'
         },
         default: 'Scheduled' 

@@ -6,6 +6,11 @@ import Navbar from '../components/Navbar';
 const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [message, setMessage] = useState('');
+  const [uploadingFor, setUploadingFor] = useState(null);
+  const [reportTitle, setReportTitle] = useState('');
+  const [reportType, setReportType] = useState('Lab Result');
+  const [reportFile, setReportFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   // Fetch appointments on load
@@ -24,6 +29,39 @@ const DoctorDashboard = () => {
       setAppointments(res.data);
     } catch (err) {
       console.error("Error fetching appointments", err);
+    }
+  };
+
+  const handleUploadReport = async (e, patientId) => {
+    e.preventDefault();
+    if (!reportFile || !reportTitle) return alert('Please provide a title and a file.');
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('reportFile', reportFile);
+    formData.append('title', reportTitle);
+    formData.append('reportType', reportType);
+    formData.append('patientId', patientId);
+
+    try {
+      const token = localStorage.getItem('hospitalToken');
+      await axios.post(import.meta.env.VITE_API_URL + '/api/reports', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setMessage('Report uploaded successfully!');
+      setUploadingFor(null);
+      setReportTitle('');
+      setReportFile(null);
+      setReportType('Lab Result');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Upload failed');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -56,6 +94,7 @@ const DoctorDashboard = () => {
   const getStatusClass = (status) => {
     if (status === 'Completed') return 'status-badge--completed';
     if (status === 'Cancelled') return 'status-badge--cancelled';
+    if (status === 'Expired') return 'status-badge--cancelled';
     return 'status-badge--scheduled';
   };
 
@@ -129,11 +168,41 @@ return (
                       View Medical History
                     </button>
 
+                    <button
+                      onClick={() => setUploadingFor(uploadingFor === appt._id ? null : appt._id)}
+                      className="btn btn-outline btn--sm"
+                    >
+                      {uploadingFor === appt._id ? 'Cancel Upload' : 'Upload Report'}
+                    </button>
+
                     {/* Status Badge */}
                     <span className={`status-badge ${getStatusClass(appt.status || 'Scheduled')}`}>
                       {appt.status || 'Scheduled'}
                     </span>
                   </div>
+
+                  {uploadingFor === appt._id && (
+                    <form onSubmit={(e) => handleUploadReport(e, appt.patientId._id)} style={{ marginTop: '15px', padding: '15px', background: 'var(--surface-hover)', borderRadius: '8px' }}>
+                      <h4 style={{ marginBottom: '10px', fontSize: '14px', color: 'var(--text)' }}>Upload New Report</h4>
+                      <div className="form-group" style={{ marginBottom: '10px' }}>
+                        <input type="text" placeholder="Report Title (e.g., Blood Test)" value={reportTitle} onChange={e => setReportTitle(e.target.value)} required className="input" style={{ padding: '8px', fontSize: '13px' }} />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: '10px' }}>
+                        <select value={reportType} onChange={e => setReportType(e.target.value)} className="input" style={{ padding: '8px', fontSize: '13px' }}>
+                          <option value="Lab Result">Lab Result</option>
+                          <option value="Prescription">Prescription</option>
+                          <option value="Scan">Scan</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="form-group" style={{ marginBottom: '10px' }}>
+                        <input type="file" onChange={e => setReportFile(e.target.files[0])} required className="input" style={{ padding: '8px', fontSize: '13px', background: 'white' }} />
+                      </div>
+                      <button type="submit" disabled={isUploading} className="btn btn-primary btn--sm">
+                        {isUploading ? 'Uploading...' : 'Submit Report'}
+                      </button>
+                    </form>
+                  )}
                 </div>
 
                 {/* Status Update Control */}

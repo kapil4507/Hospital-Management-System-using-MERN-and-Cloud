@@ -28,7 +28,7 @@ const AdminAppointments = () => {
 
   const getStatusClass = (status) => {
     if (status === 'Completed') return 'status-badge--completed';
-    if (status === 'Cancelled') return 'status-badge--cancelled';
+    if (status === 'Cancelled' || status === 'Expired') return 'status-badge--cancelled';
     return 'status-badge--scheduled';
   };
 
@@ -75,7 +75,7 @@ const AdminAppointments = () => {
                 disabled={loading}
                 className="btn btn-danger btn--full"
               >
-                {loading ? 'Unlocking...' : '🔐 View Master List'}
+                {loading ? 'Unlocking...' : 'View List'}
               </button>
             </form>
           )}

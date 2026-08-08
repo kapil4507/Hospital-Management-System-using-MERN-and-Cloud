@@ -47,10 +47,16 @@ router.post('/', auth, upload.single('reportFile'), async (req, res) => {
         }
 
         // 2. Grab the text data from the request body
-        const { doctorId, title, reportType } = req.body;
+        let { doctorId, title, reportType, patientId } = req.body;
         
-        // 3. Grab the secure patient ID from the JWT token!
-        const patientId = req.user.id;
+        // 3. Determine IDs based on role from the JWT token!
+        if (req.user.role === 'doctor') {
+            doctorId = req.user.id;
+            if (!patientId) return res.status(400).json({ message: 'Patient ID is required.' });
+        } else {
+            patientId = req.user.id;
+            if (!doctorId) return res.status(400).json({ message: 'Doctor ID is required.' });
+        }
 
         // 4. Create the report in MongoDB
         const newReport = await MedicalReport.create({

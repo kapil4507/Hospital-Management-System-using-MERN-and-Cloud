@@ -5,6 +5,15 @@ const auth = require('../middlewares/auth.js');
 router.post('/',auth, async (req, res)=>{
     try{
         const { doctorId, date, timeSlot, status, reasonForVisit } = req.body;
+        
+        // Prevent past date booking
+        const appointmentDate = new Date(date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (appointmentDate < today) {
+            return res.status(400).json({ message: 'Cannot book an appointment for a past date.' });
+        }
+
         //take id from jwt token (from auth middleware) because user can give wrong id
         const patientId = req.user.id;
         //if doctor already have an appointment at the same time
@@ -60,6 +69,15 @@ router.post('/admin/all', async (req, res) => {
         if (adminSecret !== HOSPITAL_SECRET) {
             return res.status(403).json({ message: 'Forbidden: Invalid Admin Secret Key.' });
         }
+        
+        // Lazy Update: Auto-expire past Scheduled appointments
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        await Appointments.updateMany(
+            { status: 'Scheduled', date: { $lt: today } },
+            { $set: { status: 'Expired' } }
+        );
+
         const appoints = await Appointments.find()
             .populate('patientId', 'patientName mobile email')
             .populate('doctorId', 'doctorName specialization')
@@ -74,6 +92,14 @@ router.post('/admin/all', async (req, res) => {
 // Protected by 'auth' middleware to know WHO is asking
 router.get('/', auth, async (req, res) => {
     try {
+        // Lazy Update: Auto-expire past Scheduled appointments
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        await Appointments.updateMany(
+            { status: 'Scheduled', date: { $lt: today } },
+            { $set: { status: 'Expired' } }
+        );
+
         let query = {};
 
         // 1. If it is a patient, ONLY fetch appointments matching their ID
@@ -101,7 +127,7 @@ router.put('/:id', async (req, res)=>{
     try{
         const id = req.params.id;
         const {status} = req.body;
-        const validSt = ['Scheduled', 'Completed', 'Cancelled'];
+        const validSt = ['Scheduled', 'Completed', 'Cancelled', 'Expired'];
         if(!validSt.includes(status)){
             return res.status(400).json({message: "Not a valid status. Please enter status from : ", validSt});
         }

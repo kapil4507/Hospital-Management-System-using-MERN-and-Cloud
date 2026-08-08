@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
-  const [statusMessage, setStatusMessage] = useState(''); // To show feedback
-  const [doctors, setDoctors] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [statusMessage, setStatusMessage] = useState(location.state?.message || ''); // To show feedback
+  const [doctors, setDoctors] = useState([]);
 
 useEffect(() => {
   const fetchData = async () => {
@@ -28,6 +29,16 @@ useEffect(() => {
   };
   fetchData();
 }, []);
+
+  useEffect(() => {
+    if (location.state?.message) {
+      const timer = setTimeout(() => {
+        setStatusMessage('');
+        navigate(location.pathname, { replace: true, state: {} });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, navigate, location.pathname]);
 
   //\cancellation
   const handleCancel = async (appointmentId) => {
@@ -63,7 +74,7 @@ useEffect(() => {
 
   const getStatusClass = (status) => {
     if (status === 'Completed') return 'status-badge--completed';
-    if (status === 'Cancelled') return 'status-badge--cancelled';
+    if (status === 'Cancelled' || status === 'Expired') return 'status-badge--cancelled';
     return 'status-badge--scheduled';
   };
 

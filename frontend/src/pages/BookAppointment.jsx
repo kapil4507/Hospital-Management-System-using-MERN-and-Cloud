@@ -35,8 +35,7 @@ const BookAppointment = () => {
       const res = await axios.post(import.meta.env.VITE_API_URL + '/api/appointments', formData, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      alert("Appointment Booked Successfully!");
-      navigate('/dashboard');
+      navigate('/dashboard', { state: { message: 'Appointment Booked Successfully!' } });
     } catch (err) {
       setMessage(err.response?.data?.message || "Booking failed");
     }
@@ -84,6 +83,7 @@ const BookAppointment = () => {
               <input
                 id="input-date"
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 required
                 className="input"
                 onChange={(e) => setFormData({...formData, date: e.target.value})}

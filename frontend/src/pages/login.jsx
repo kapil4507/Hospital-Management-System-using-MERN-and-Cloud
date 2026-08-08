@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Login = () => {
   const [emailOrId, setEmailOrId] = useState(''); // Email for patient, ID for doctor
@@ -9,6 +9,8 @@ const Login = () => {
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,8 +36,6 @@ const Login = () => {
       const userName = response.data.role === 'doctor' ? response.data.doctorName : response.data.patientName;
       if (userName) localStorage.setItem('userName', userName);
       
-      alert(`${role.charAt(0).toUpperCase() + role.slice(1)} Login Successful!`);
-      
       // Redirect based on role
       if (response.data.role === 'doctor') {
         navigate('/doctor-dashboard');
@@ -44,6 +44,7 @@ const Login = () => {
       }
 
     } catch (err) {
+      setSuccessMessage('');
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
     }
   };
@@ -63,6 +64,7 @@ const Login = () => {
           <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Sign in to your account</p>
         </div>
 
+        {successMessage && <div className="alert alert--success" style={{ marginBottom: '20px' }}>{successMessage}</div>}
         {error && <div className="alert alert--error">{error}</div>}
 
         {/* Role Selector */}
@@ -70,7 +72,7 @@ const Login = () => {
           <button
             id="tab-patient"
             type="button"
-            onClick={() => setRole('patient')}
+            onClick={() => { setRole('patient'); setSuccessMessage(''); setError(''); }}
             className={`role-tab ${role === 'patient' ? 'role-tab--active' : ''}`}
           >
             Patient
@@ -78,7 +80,7 @@ const Login = () => {
           <button
             id="tab-doctor"
             type="button"
-            onClick={() => setRole('doctor')}
+            onClick={() => { setRole('doctor'); setSuccessMessage(''); setError(''); }}
             className={`role-tab ${role === 'doctor' ? 'role-tab--active' : ''}`}
           >
             Doctor
